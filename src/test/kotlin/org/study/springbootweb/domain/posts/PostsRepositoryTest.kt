@@ -1,12 +1,10 @@
-package org.study.springbootweb.web.domain.posts
+package org.study.springbootweb.domain.posts
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.study.springbootweb.domain.posts.Posts
-import org.study.springbootweb.domain.posts.PostsRepository
 import java.time.LocalDateTime
 
 @SpringBootTest

@@ -7,7 +7,7 @@ import org.study.springbootweb.web.dto.PostsSaveRequestDto
 import org.study.springbootweb.web.dto.PostsUpdateRequestDto
 
 @RestController
-class PostsApiController (
+class PostsApiController(
     private val postsService: PostsService
 ) {
     @PostMapping("/api/v1/posts")
@@ -16,13 +16,21 @@ class PostsApiController (
     }
 
     @PutMapping("/api/v1/posts/{id}")
-    fun update(@PathVariable id: Long,
-               @RequestBody requestDto: PostsUpdateRequestDto): Long {
+    fun update(
+        @PathVariable id: Long,
+        @RequestBody requestDto: PostsUpdateRequestDto
+    ): Long {
         return postsService.update(id, requestDto)
     }
 
     @GetMapping("/api/v1/posts/{id}")
     fun findById(@PathVariable id: Long): PostsResponseDto {
         return postsService.findById(id)
+    }
+
+    @DeleteMapping("/api/v1/posts/{id}")
+    fun delete(@PathVariable id: Long): Long {
+        postsService.delete(id)
+        return id
     }
 }
