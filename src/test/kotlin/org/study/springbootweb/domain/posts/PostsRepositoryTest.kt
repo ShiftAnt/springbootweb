@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 @SpringBootTest
 class PostsRepositoryTest @Autowired constructor(
-    val postsRepository: PostsRepository
+    private val postsRepository: PostsRepository
 ) {
     @AfterEach
     fun cleanUp() {

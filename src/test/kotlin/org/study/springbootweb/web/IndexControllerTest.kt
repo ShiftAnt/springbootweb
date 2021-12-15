@@ -9,7 +9,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class IndexControllerTest @Autowired constructor(
-    val restTemplate: TestRestTemplate
+    private val restTemplate: TestRestTemplate
 ) {
     @Test
     fun loadingMainPage() {
@@ -17,6 +17,6 @@ class IndexControllerTest @Autowired constructor(
         val body = this.restTemplate.getForObject("/", String::class.java)
 
         //then
-        assertThat(body).contains("스프링 부트로 시작하는 웹 서비스")
+        assertThat(body).contains("스프링 부트로 시작되는 웹 서비스 Ver.2")
     }
 }

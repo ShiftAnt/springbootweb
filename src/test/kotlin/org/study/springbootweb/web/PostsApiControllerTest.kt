@@ -1,15 +1,20 @@
 package org.study.springbootweb.web
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.put
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.context.WebApplicationContext
 import org.study.springbootweb.domain.posts.Posts
 import org.study.springbootweb.domain.posts.PostsRepository
 import org.study.springbootweb.web.dto.PostsSaveRequestDto
@@ -17,11 +22,21 @@ import org.study.springbootweb.web.dto.PostsUpdateRequestDto
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PostsApiControllerTest @Autowired constructor(
-    private val restTemplate: TestRestTemplate,
-    private val postsRepository: PostsRepository
+    private val postsRepository: PostsRepository,
+    private val context: WebApplicationContext,
 ) {
     @LocalServerPort
     private var port: Int = 0
+
+    private lateinit var mvc: MockMvc
+
+    @BeforeEach
+    fun setup() {
+        mvc = MockMvcBuilders
+            .webAppContextSetup(context)
+            .apply { }
+            .build()
+    }
 
     @AfterEach
     fun teardown() {
@@ -29,6 +44,7 @@ class PostsApiControllerTest @Autowired constructor(
     }
 
     @Test
+    @WithMockUser(roles = ["USER"])
     fun registeredPosts() {
         val title = "title"
         val content = "content"
@@ -41,18 +57,19 @@ class PostsApiControllerTest @Autowired constructor(
         val url = "http://localhost:${port}/api/v1/posts"
 
         //when
-        val responseEntity = restTemplate.postForEntity(url, requestDto, Long::class.java)
+        mvc.post(url) {
+            this.contentType = MediaType.APPLICATION_JSON
+            this.content = ObjectMapper().writeValueAsString(requestDto)
+        }.andExpect { status { isOk() } }
 
         //then
-        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(responseEntity.body).isGreaterThan(0L)
-
         val all = postsRepository.findAll()
-        assertThat(all[0].title).isEqualTo(title)
-        assertThat(all[0].content).isEqualTo(content)
+        assertThat(all.first().title).isEqualTo(title)
+        assertThat(all.first().content).isEqualTo(content)
     }
 
     @Test
+    @WithMockUser(roles = ["USER"])
     fun updatedPosts() {
         val savePosts = postsRepository.save(
             Posts(
@@ -73,17 +90,15 @@ class PostsApiControllerTest @Autowired constructor(
 
         val url = "http://localhost:${port}/api/v1/posts/$updateId"
 
-        val requestEntity = HttpEntity(requestDto)
-
         //when
-        val responseEntity = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, Long::class.java)
+        mvc.put(url) {
+            this.contentType = MediaType.APPLICATION_JSON
+            this.content = ObjectMapper().writeValueAsString(requestDto)
+        }.andExpect { status { isOk() } }
 
         //then
-        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(responseEntity.body).isGreaterThan(0L)
-
         val all = postsRepository.findAll()
-        assertThat(all[0].title).isEqualTo(expectedTitle)
-        assertThat(all[0].content).isEqualTo(expectedContent)
+        assertThat(all.first().title).isEqualTo(expectedTitle)
+        assertThat(all.first().content).isEqualTo(expectedContent)
     }
 }

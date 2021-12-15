@@ -8,12 +8,25 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.hamcrest.Matchers.`is`
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.FilterType
+import org.springframework.security.test.context.support.WithMockUser
+import org.study.springbootweb.config.auth.SecurityConfig
 
 @ExtendWith(SpringExtension::class)
-@WebMvcTest(controllers = [HelloController::class])
+@WebMvcTest(
+    controllers = [HelloController::class],
+    excludeFilters = [
+        ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = [SecurityConfig::class]
+        )
+    ]
+)
 class HelloControllerTest @Autowired constructor(
-    val mvc: MockMvc
+    private val mvc: MockMvc
 ) {
+    @WithMockUser(roles = ["USER"])
     @Test
     fun helloReturn() {
         val hello = "hello"
@@ -23,6 +36,7 @@ class HelloControllerTest @Autowired constructor(
             .andExpect { content { string(hello) } }
     }
 
+    @WithMockUser(roles = ["USER"])
     @Test
     fun helloDtoReturn() {
         val name = "hello"
